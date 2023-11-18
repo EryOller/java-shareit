@@ -16,14 +16,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-    private final ItemMapper itemMapper;
     private final ItemRepository itemRepository;
     private final UserService userService;
 
     @Override
     public ItemDtoRs save(int ownerId, ItemSaveDtoRq itemDto) {
         if (userService.isValidId(ownerId)) {
-            return itemMapper.itemToItemDtoRs(itemRepository.save(itemMapper.itemCreateDtoToItem(ownerId, itemDto)));
+            itemDto.setOwner(userService.findUserById(ownerId));
+            return ItemMapper.INSTANCE.toItemDtoRs(itemRepository.save(ItemMapper.INSTANCE.toItem(itemDto)));
         } else {
             throw new IdNotFoundException("Владелец вещи с id " + ownerId + " не найден");
         }
@@ -31,9 +31,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoRs update(int userId, int itemId, ItemUpdateDtoRq itemDto) {
-        Item item = itemMapper.itemUpdateDtoToItem(userId, itemDto);
         Item itemFromRepository = itemRepository.findById(itemId);
         if (itemFromRepository.getOwner().getId() == userId) {
+            itemDto.setOwner(userService.findUserById(userId));
+            Item item = ItemMapper.INSTANCE.toItem(itemDto);
             return updateItemByField(itemFromRepository, item);
         } else {
             throw new EditForbiddenException("Edit is forbidden for user with id " + userId);
@@ -43,7 +44,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDtoRs getItemById(int itemId) {
         if (itemRepository.isValidId(itemId)) {
-            return itemMapper.itemToItemDtoRs(itemRepository.findById(itemId));
+            return ItemMapper.INSTANCE.toItemDtoRs(itemRepository.findById(itemId));
         } else {
             throw new IdNotFoundException("Вещь с id " + itemId + " не найдена");
         }
@@ -51,15 +52,15 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDtoRs> getAllItemsByUserId(int userId) {
-        return itemToItemDtoRsFromList(itemRepository.getListItemsByUserId(userId));
+        return ItemMapper.INSTANCE.toListItemDtoRs(itemRepository.getListItemsByUserId(userId));
     }
 
     @Override
     public List<ItemDtoRs> searchItemByText(String text) {
-        if ("".equals(text)) {
+        if (text.isEmpty() || text.isBlank()) {
             return new ArrayList<>(0);
         } else {
-            return itemToItemDtoRsFromList(itemRepository.getItemByText(text));
+            return ItemMapper.INSTANCE.toListItemDtoRs(itemRepository.getItemByText(text));
         }
     }
 
@@ -73,14 +74,6 @@ public class ItemServiceImpl implements ItemService {
         if (itemUpdate.getAvailable() != null) {
             item.setAvailable(itemUpdate.getAvailable());
         }
-        return itemMapper.itemToItemDtoRs(item);
-    }
-
-    private List<ItemDtoRs> itemToItemDtoRsFromList(List<Item> itemList) {
-        List<ItemDtoRs> itemDtoRsList = new ArrayList<>();
-        for (Item item : itemList) {
-            itemDtoRsList.add(itemMapper.itemToItemDtoRs(item));
-        }
-        return itemDtoRsList;
+        return ItemMapper.INSTANCE.toItemDtoRs(item);
     }
 }

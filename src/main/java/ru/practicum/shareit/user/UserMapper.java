@@ -1,31 +1,22 @@
 package ru.practicum.shareit.user;
 
-
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
-@Component
-public class UserMapper {
-    public User userUpdateDtoToUser(UserUpdateDtoRq userDto) {
-        return User.builder().email(userDto.getEmail())
-                .name(userDto.getName())
-                .build();
-    }
+import java.util.List;
 
-    public User userCreateDtoToUser(UserCreateDtoRq userDto) {
-        return User.builder()
-                .email(userDto.getEmail())
-                .name(userDto.getName())
-                .build();
-    }
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    public UserDtoRs userToUserDtoRs(User user) {
-        return UserDtoRs.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
-    }
+    User toUser(UserUpdateDtoRq userDto);
+
+    User toUser(UserCreateDtoRq userDto);
+
+    UserDtoRs toUserDtoRs(User user);
+
+    List<UserDtoRs> toListItemDtoRs(List<User> users);
 }

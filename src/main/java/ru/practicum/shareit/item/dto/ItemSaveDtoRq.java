@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import ru.practicum.shareit.user.User;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -15,5 +16,5 @@ public class ItemSaveDtoRq {
     private String description;
     @NotNull
     private Boolean available;
-
+    private User owner;
 }
