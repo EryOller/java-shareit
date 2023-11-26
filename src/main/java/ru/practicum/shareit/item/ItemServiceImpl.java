@@ -18,12 +18,13 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserService userService;
+    private final ItemMapper itemMapper;
 
     @Override
     public ItemDtoRs save(int ownerId, ItemSaveDtoRq itemDto) {
         if (userService.isValidId(ownerId)) {
             itemDto.setOwner(userService.findUserById(ownerId));
-            return ItemMapper.INSTANCE.toItemDtoRs(itemRepository.save(ItemMapper.INSTANCE.toItem(itemDto)));
+            return itemMapper.toItemDtoRs(itemRepository.save(itemMapper.toItem(itemDto)));
         } else {
             throw new IdNotFoundException("Владелец вещи с id " + ownerId + " не найден");
         }
@@ -34,7 +35,7 @@ public class ItemServiceImpl implements ItemService {
         Item itemFromRepository = itemRepository.findById(itemId);
         if (itemFromRepository.getOwner().getId() == userId) {
             itemDto.setOwner(userService.findUserById(userId));
-            Item item = ItemMapper.INSTANCE.toItem(itemDto);
+            Item item = itemMapper.toItem(itemDto);
             return updateItemByField(itemFromRepository, item);
         } else {
             throw new EditForbiddenException("Edit is forbidden for user with id " + userId);
@@ -44,7 +45,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDtoRs getItemById(int itemId) {
         if (itemRepository.isValidId(itemId)) {
-            return ItemMapper.INSTANCE.toItemDtoRs(itemRepository.findById(itemId));
+            return itemMapper.toItemDtoRs(itemRepository.findById(itemId));
         } else {
             throw new IdNotFoundException("Вещь с id " + itemId + " не найдена");
         }
@@ -52,7 +53,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDtoRs> getAllItemsByUserId(int userId) {
-        return ItemMapper.INSTANCE.toListItemDtoRs(itemRepository.getListItemsByUserId(userId));
+        return itemMapper.toListItemDtoRs(itemRepository.getListItemsByUserId(userId));
     }
 
     @Override
@@ -60,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
         if (text.isEmpty() || text.isBlank()) {
             return new ArrayList<>(0);
         } else {
-            return ItemMapper.INSTANCE.toListItemDtoRs(itemRepository.getItemByText(text));
+            return itemMapper.toListItemDtoRs(itemRepository.getItemByText(text));
         }
     }
 
@@ -74,6 +75,6 @@ public class ItemServiceImpl implements ItemService {
         if (itemUpdate.getAvailable() != null) {
             item.setAvailable(itemUpdate.getAvailable());
         }
-        return ItemMapper.INSTANCE.toItemDtoRs(item);
+        return itemMapper.toItemDtoRs(item);
     }
 }

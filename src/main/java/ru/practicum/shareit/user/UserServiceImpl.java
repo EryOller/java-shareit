@@ -13,38 +13,39 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
         if (checkDuplicateEmail(
-                UserMapper.INSTANCE.toUser(userDto))) {
+                userMapper.toUser(userDto))) {
             throw new DuplicateException("Email already exists!");
         } else {
-            return UserMapper.INSTANCE.toUserDtoRs(userRepository.saveUser(UserMapper.INSTANCE.toUser(userDto)));
+            return userMapper.toUserDtoRs(userRepository.saveUser(userMapper.toUser(userDto)));
         }
     }
 
     @Override
     public UserDtoRs findById(int userId) {
-        return UserMapper.INSTANCE.toUserDtoRs(findUserById(userId));
+        return userMapper.toUserDtoRs(findUserById(userId));
     }
 
     @Override
     public List<UserDtoRs> getUsers() {
-        return UserMapper.INSTANCE.toListItemDtoRs(userRepository.getUsers());
+        return userMapper.toListItemDtoRs(userRepository.getUsers());
     }
 
     @Override
     public UserDtoRs updateUserById(int userid, UserUpdateDtoRq userDto) {
         if (isValidId(userid)) {
-            User userUpdate = UserMapper.INSTANCE.toUser(userDto);
+            User userUpdate = userMapper.toUser(userDto);
             userUpdate.setId(userid);
             if (checkDuplicateEmail(userUpdate)) {
                 throw new DuplicateException("Email already exists!");
             } else {
                 User userInRepository = userRepository.findById(userid);
                 userUpdate = updateUserByField(userInRepository, userUpdate);
-                return UserMapper.INSTANCE.toUserDtoRs(userRepository.updateUser(userUpdate));
+                return userMapper.toUserDtoRs(userRepository.updateUser(userUpdate));
             }
         } else {
             throw new IdNotFoundException("Not found user by id");
