@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.EditForbiddenException;
 import ru.practicum.shareit.exception.IdNotFoundException;
@@ -10,16 +11,23 @@ import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
+    @Autowired
     private final ItemRepository itemRepository;
+    @Autowired
     private final UserService userService;
+    @Autowired
     private final ItemMapper itemMapper;
 
+    @Transactional
     @Override
     public ItemDtoRs save(int ownerId, ItemSaveDtoRq itemDto) {
         if (userService.isValidId(ownerId)) {
@@ -30,9 +38,10 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    @Transactional
     @Override
     public ItemDtoRs update(int userId, int itemId, ItemUpdateDtoRq itemDto) {
-        Item itemFromRepository = itemRepository.findById(itemId);
+        Item itemFromRepository = itemRepository.findById(itemId).get();
         if (itemFromRepository.getOwner().getId() == userId) {
             itemDto.setOwner(userService.findUserById(userId));
             Item item = itemMapper.toItem(itemDto);
@@ -44,8 +53,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoRs getItemById(int itemId) {
-        if (itemRepository.isValidId(itemId)) {
-            return itemMapper.toItemDtoRs(itemRepository.findById(itemId));
+        if (itemRepository.existsById(itemId)) {
+            return itemMapper.toItemDtoRs(itemRepository.findById(itemId).get());
         } else {
             throw new IdNotFoundException("Вещь с id " + itemId + " не найдена");
         }
@@ -53,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDtoRs> getAllItemsByUserId(int userId) {
-        return itemMapper.toListItemDtoRs(itemRepository.getListItemsByUserId(userId));
+        return itemMapper.toListItemDtoRs(itemRepository.getListItemsByOwnerId(userId));
     }
 
     @Override
@@ -65,6 +74,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    @Transactional
     private ItemDtoRs updateItemByField(Item item, Item itemUpdate) {
         if (itemUpdate.getName() != null && !"".equals(itemUpdate.getName())) {
             item.setName(itemUpdate.getName());

@@ -11,5 +11,5 @@ public class ItemDtoRs {
     private String name;
     private String description;
     private Boolean available;
-    private User owner;
+    //private User owner;
 }
