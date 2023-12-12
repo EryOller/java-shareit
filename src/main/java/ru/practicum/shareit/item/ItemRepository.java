@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item> {
 
-    List<Item> getListItemsByOwnerId(int userId);
+    List<Item> getListItemsByOwnerIdOrderByIdAsc(int userId);
 
     @Query(value = "SELECT * FROM items as it " +
             "WHERE it.is_available = true " +

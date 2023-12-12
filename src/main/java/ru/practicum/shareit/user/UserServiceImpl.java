@@ -3,13 +3,12 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicateException;
-import ru.practicum.shareit.exception.IdNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,27 +18,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
-//        try {
-            return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
-//        } catch (SQLException e) {
-//            throw new DuplicateException("Email already exists!");
-//        }
-
-
-//        if (checkDuplicateEmail(userMapper.toUser(userDto))) {
-//            throw new DuplicateException("Email already exists!");
-//        } else {
-//            return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
-//        }
+        return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
     }
 
     @Override
     public UserDtoRs findById(int userId) {
-        try {
-            return userMapper.toUserDtoRs(findUserById(userId));
-        } catch (NoSuchElementException e) {
-            throw new IdNotFoundException("User with id " + userId + " not found");
-        }
+        return userMapper.toUserDtoRs(findUserById(userId));
     }
 
     @Override
@@ -56,12 +40,11 @@ public class UserServiceImpl implements UserService {
                 throw new DuplicateException("Email already exists!");
             } else {
                 User userInRepository = userRepository.findById(userid).get();
-                //User userInRepository = userRepository.findById(userid);
                 userUpdate = updateUserByField(userInRepository, userUpdate);
                 return userMapper.toUserDtoRs(userRepository.save(userUpdate));
             }
         } else {
-            throw new IdNotFoundException("Not found user by id");
+            throw new NotFoundException("Not found user by id");
         }
     }
 
@@ -81,7 +64,8 @@ public class UserServiceImpl implements UserService {
     }
 
     public User findUserById(int userId) {
-        return userRepository.findById(userId).get();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
     }
 
     private User updateUserByField(User user, User userUpdate) {

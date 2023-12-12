@@ -16,4 +16,12 @@ public enum BookingStatus {
     public String getTitle() {
         return title;
     }
+
+    public static BookingStatus getBookingStatus(boolean isApprove) {
+        if (isApprove) {
+            return APPROVED;
+        } else {
+            return REJECTED;
+        }
+    }
 }

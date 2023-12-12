@@ -3,6 +3,8 @@ package ru.practicum.shareit.item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.comment.dto.CommentDtoRq;
+import ru.practicum.shareit.item.comment.dto.CommentDtoRs;
 import ru.practicum.shareit.item.dto.ItemDtoRs;
 import ru.practicum.shareit.item.dto.ItemSaveDtoRq;
 import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
@@ -36,9 +38,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDtoRs getItem(@PathVariable Integer itemId) {
+    public ItemDtoRs getItem(@RequestHeader("X-Sharer-User-Id") int userId, @PathVariable Integer itemId) {
         log.info("Получен запрос GET /items/{itemId} — на получение вещи по itemId");
-       return itemService.getItemById(itemId);
+       return itemService.getItemById(userId, itemId);
     }
 
     @GetMapping()
@@ -51,5 +53,14 @@ public class ItemController {
     public List<ItemDtoRs> getAllItemsByText(@RequestParam String text) {
         log.info("Получен запрос GET /items/search — на поиск вещей по тексту");
         return itemService.searchItemByText(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDtoRs createComment(@Valid @RequestBody CommentDtoRq commentDtoRq,
+                                      @PathVariable int itemId,
+                                      @RequestHeader("X-Sharer-User-Id") int userId) {
+        log.info("пользователь с id {} оставил отзыв на вещь с id {}: {}", userId, itemId, commentDtoRq);
+
+        return itemService.createComment(commentDtoRq, itemId, userId);
     }
 }

@@ -5,10 +5,8 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-//@Data
 @Setter
 @Getter
-//@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users", schema = "public")
