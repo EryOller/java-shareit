@@ -1,10 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.EditForbiddenException;
 import ru.practicum.shareit.booking.Booking;
@@ -32,17 +30,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-    @Autowired
     private final ItemRepository itemRepository;
-    @Autowired
     private final UserService userService;
-    @Autowired
     private final ItemMapper itemMapper;
-    @Autowired
     private final BookingRepository bookingRepository;
-    @Autowired
     private final CommentMapper commentMapper;
-    @Autowired
     private final CommentRepository commentRepository;
 
     @Transactional
@@ -74,18 +66,15 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoRs getItemById(int userId, int itemId) {
         Item item = itemRepository.findById(itemId)
                     .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
-        Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(), item.getOwner().getId(),
-                        LocalDateTime.now()).stream()
-                .filter(b -> b.getItem().getOwner().getId() == userId)
-                .filter(b -> !BookingStatus.REJECTED.equals(b.getStatus()))
+        Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(), userId,
+                        LocalDateTime.now())
+                .stream()
                 .findFirst()
                 .orElse(null);
         item.setLastBooking(lastBooking);
-        Booking nextBooking = bookingRepository.findFutureOwnerBookings(item.getId(), item.getOwner().getId(),
+        Booking nextBooking = bookingRepository.findFutureOwnerBookings(item.getId(), userId,
                         LocalDateTime.now())
-                .stream()
-                .filter(b -> b.getItem().getOwner().getId() == userId)
-                .filter(b -> !BookingStatus.REJECTED.equals(b.getStatus()))
+                 .stream()
                 .findFirst()
                 .orElse(null);
         item.setNextBooking(nextBooking);
@@ -97,27 +86,28 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDtoRs> getAllItemsByUserId(int userId) {
-        List<Item> items = itemRepository.getListItemsByOwnerIdOrderByIdAsc(userId).stream()
-                        .peek(item -> {
-                            Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(),
-                                            item.getOwner().getId(), LocalDateTime.now()).stream()
-                        .filter(b -> b.getItem().getOwner().getId() == userId)
-                        .filter(b -> !BookingStatus.REJECTED.equals(b.getStatus()))
-                        .findFirst()
-                        .orElse(null);
-                    item.setLastBooking(lastBooking);
+        List<Item> items = itemRepository.getListItemsByOwnerIdOrderByIdAsc(userId);
+        List<Booking> bookings = bookingRepository
+                .findAllOwnerBookings(userId);
+        List<Comment> comments = commentRepository.findAllCommentsByItemOwnerId(userId);
+        return itemMapper.toListItemDtoRs(
+                items.stream()
+                .peek(item -> {
+                    item.setNextBooking(bookings.stream()
+                            .filter(booking -> booking.getStart().isAfter(LocalDateTime.now())
+                                    && booking.getItem().getId() == item.getId())
+                            .findFirst().orElse(null));
+                    item.setLastBooking(bookings.stream()
+                            .filter(booking -> booking.getStart().isBefore(LocalDateTime.now())
+                                    && booking.getItem().getId() == item.getId())
+                            .findFirst().orElse(null));
+                    item.setComments(
+                            comments.stream()
+                                    .filter(comment -> comment.getItem().getId() == item.getId())
+                                    .collect(Collectors.toList()));
 
-                    Booking nextBooking = bookingRepository.findFutureOwnerBookings(item.getId(),
-                                    item.getOwner().getId(), LocalDateTime.now())
-                            .stream()
-                            .filter(b -> b.getItem().getOwner().getId() == userId)
-                            .filter(b -> !BookingStatus.REJECTED.equals(b.getStatus()))
-                            .findFirst()
-                            .orElse(null);
-                    item.setNextBooking(nextBooking);
-                    item.setComments(commentRepository.findCommentsByItemId(item.getId()));
-                }).collect(Collectors.toList());
-                return itemMapper.toListItemDtoRs(items);
+                }).collect(Collectors.toList())
+        );
     }
 
     @Override
@@ -144,7 +134,7 @@ public class ItemServiceImpl implements ItemService {
         if (commentDtoRq.getText() == null || commentDtoRq.getText().equals("")) {
             throw new BadRequestException("Отзыв не может быть пустым");
         }
-        Long bookingsCount = bookingRepository.countAllByItemIdAndBookerIdAndEndBefore(itemId, userId,
+        Integer bookingsCount = bookingRepository.countAllByItemIdAndBookerIdAndEndBefore(itemId, userId,
                 LocalDateTime.now());
         if (bookingsCount == null || bookingsCount == 0) {
             throw new BadRequestException("сначала надо взять эту вещь");

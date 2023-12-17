@@ -21,5 +21,5 @@ public class ItemSaveDtoRq {
     private Boolean available;
     private User owner;
     @ToString.Exclude
-    List<CommentDtoRq> comments;
+    private List<CommentDtoRq> comments;
 }

@@ -17,5 +17,5 @@ public class ItemDtoRs {
     private BookingItemDtoRs lastBooking;
     private BookingItemDtoRs nextBooking;
     @ToString.Exclude
-    List<CommentDtoRs> comments;
+    private List<CommentDtoRs> comments;
 }

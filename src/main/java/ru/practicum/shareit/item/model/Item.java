@@ -6,6 +6,7 @@ import ru.practicum.shareit.item.comment.model.Comment;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,5 +32,8 @@ public class Item {
     @Transient
     private Booking nextBooking;
     @Transient
-    private List<Comment> comments;
+    @OneToMany(fetch = FetchType.LAZY)
+    @ElementCollection
+    @CollectionTable(name = "comments", joinColumns = @JoinColumn(name = "item_id"))
+    private List<Comment> comments = new ArrayList<>();
 }

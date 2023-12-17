@@ -59,8 +59,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean checkDuplicateEmail(User user) {
-        return userRepository.findAll().stream()
-                .anyMatch(u -> u.getEmail().equals(user.getEmail()) && user.getId() != u.getId());
+        User userFromRepository = userRepository.getUserByEmail(user.getEmail());
+        if (userFromRepository != null && user.getId() != userFromRepository.getId()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public User findUserById(int userId) {

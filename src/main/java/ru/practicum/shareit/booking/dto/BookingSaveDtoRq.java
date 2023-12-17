@@ -1,23 +1,26 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.booking.validator.DateConstraint;
 
-import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Data
-@RequiredArgsConstructor
+@Setter
+@Getter
 public class BookingSaveDtoRq {
+    @NotNull
     @DateConstraint
     private LocalDateTime start;
+    @NotNull
     @DateConstraint
     private LocalDateTime end;
     private int itemId;
 
-    @AssertTrue()
-    private boolean isValidDate() {
-        return start != null && end != null && start.isBefore(end);
+    public BookingSaveDtoRq(LocalDateTime start, LocalDateTime end, int itemId) {
+        this.start = start;
+        this.end = end;
+        this.itemId = itemId;
     }
 }

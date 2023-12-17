@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,11 +19,11 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
     List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(int id, LocalDateTime now);
 
     @Query("select b from Booking b " +
-            "where b.booker.id = ?1 and " +
-            "b.start < ?2 and " +
-            "b.end > ?2 " +
+            "where b.booker.id = :bookerId and " +
+            "b.start < :time and " +
+            "b.end > :time " +
             "order by b.start desc")
-    List<Booking> findCurrentBookerBookings(int bookerId, LocalDateTime now);
+    List<Booking> findCurrentBookerBookings(@Param("bookerId") int bookerId, @Param("time") LocalDateTime now);
 
     List<Booking> findAllByItemOwnerIdOrderByStartDesc(int ownerId);
 
@@ -33,24 +34,34 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
     List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(int ownerId, LocalDateTime now);
 
     @Query("select b from Booking b " +
-            "where b.item.owner.id = ?1 and " +
-            "b.start < ?2 and " +
-            "b.end > ?2 " +
+            "where b.item.owner.id = :ownerId and " +
+            "b.start < :time and " +
+            "b.end > :time " +
             "order by b.start desc")
-    List<Booking> findCurrentOwnerBookings(int ownerId, LocalDateTime now);
+    List<Booking> findCurrentOwnerBookings(@Param("ownerId") int ownerId, @Param("time") LocalDateTime now);
 
-    Long countAllByItemIdAndBookerIdAndEndBefore(int itemId, int userId, LocalDateTime now);
-
-    @Query("select b from Booking b " +
-            "where b.item.id = ?1 and " +
-            "b.item.owner.id = ?2 and " +
-            "b.start < ?3 order by b.start desc")
-    List<Booking> findPastOwnerBookings(int itemId, int ownerId, LocalDateTime now);
+    Integer countAllByItemIdAndBookerIdAndEndBefore(int itemId, int userId, LocalDateTime now);
 
     @Query("select b from Booking b " +
-            "where b.item.id = ?1 and " +
-            "b.item.owner.id = ?2 and " +
-            "b.start > ?3 " +
-            "order by b.start asc")
-    List<Booking> findFutureOwnerBookings(int itemId, int ownerId, LocalDateTime now);
+            "where b.item.id = :itemId and " +
+            "b.item.owner.id = :ownerId and " +
+            "b.status <> 'REJECTED' and " +
+            "b.start < :time order by b.start desc")
+    List<Booking> findPastOwnerBookings(@Param("itemId") int itemId, @Param("ownerId") int ownerId,
+                                        @Param("time") LocalDateTime now);
+
+    @Query("select b from Booking b " +
+            "where b.item.id = :itemId and " +
+            "b.item.owner.id = :ownerId and " +
+            "b.status <> 'REJECTED' and " +
+            "b.start > :time " +
+            "order by b.start")
+    List<Booking> findFutureOwnerBookings(@Param("itemId") int itemId, @Param("ownerId") int ownerId,
+                                          @Param("time") LocalDateTime now);
+
+    @Query("select b from Booking b " +
+            "where b.item.owner.id = :ownerId and " +
+            "b.status <> 'REJECTED' " +
+            "order by b.start")
+    List<Booking> findAllOwnerBookings(@Param("ownerId") int ownerId);
 }
