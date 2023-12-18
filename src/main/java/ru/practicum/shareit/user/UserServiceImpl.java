@@ -3,71 +3,73 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicateException;
-import ru.practicum.shareit.exception.IdNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
+
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
-        if (checkDuplicateEmail(
-                UserMapper.INSTANCE.toUser(userDto))) {
-            throw new DuplicateException("Email already exists!");
-        } else {
-            return UserMapper.INSTANCE.toUserDtoRs(userRepository.saveUser(UserMapper.INSTANCE.toUser(userDto)));
-        }
+        return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
     }
 
     @Override
     public UserDtoRs findById(int userId) {
-        return UserMapper.INSTANCE.toUserDtoRs(findUserById(userId));
+        return userMapper.toUserDtoRs(findUserById(userId));
     }
 
     @Override
     public List<UserDtoRs> getUsers() {
-        return UserMapper.INSTANCE.toListItemDtoRs(userRepository.getUsers());
+        return userMapper.toListItemDtoRs(userRepository.findAll());
     }
 
     @Override
     public UserDtoRs updateUserById(int userid, UserUpdateDtoRq userDto) {
         if (isValidId(userid)) {
-            User userUpdate = UserMapper.INSTANCE.toUser(userDto);
+            User userUpdate = userMapper.toUser(userDto);
             userUpdate.setId(userid);
             if (checkDuplicateEmail(userUpdate)) {
                 throw new DuplicateException("Email already exists!");
             } else {
-                User userInRepository = userRepository.findById(userid);
+                User userInRepository = userRepository.findById(userid).get();
                 userUpdate = updateUserByField(userInRepository, userUpdate);
-                return UserMapper.INSTANCE.toUserDtoRs(userRepository.updateUser(userUpdate));
+                return userMapper.toUserDtoRs(userRepository.save(userUpdate));
             }
         } else {
-            throw new IdNotFoundException("Not found user by id");
+            throw new NotFoundException("Not found user by id");
         }
     }
 
     @Override
     public void deleteUserById(int userId) {
-        userRepository.deleteUserById(userId);
+        userRepository.deleteById(userId);
     }
 
     @Override
     public boolean isValidId(int id) {
-        return userRepository.isValidId(id);
+        return userRepository.existsById(id);
     }
 
     public boolean checkDuplicateEmail(User user) {
-        return userRepository.getUsers().stream()
-                .anyMatch(u -> u.getEmail().equals(user.getEmail()) && user.getId() != u.getId());
+        User userFromRepository = userRepository.getUserByEmail(user.getEmail());
+        if (userFromRepository != null && user.getId() != userFromRepository.getId()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public User findUserById(int userId) {
-        return userRepository.findById(userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
     }
 
     private User updateUserByField(User user, User userUpdate) {

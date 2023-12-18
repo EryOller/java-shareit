@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.mapstruct.Mapping;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.item.dto.BookingItemDtoRs;
 import ru.practicum.shareit.item.dto.ItemDtoRs;
 import ru.practicum.shareit.item.dto.ItemSaveDtoRq;
 import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
@@ -9,9 +11,8 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = org.mapstruct.MappingConstants.ComponentModel.SPRING)
 public interface ItemMapper {
-    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
 
     Item toItem(ItemSaveDtoRq itemDto);
 
@@ -20,4 +21,7 @@ public interface ItemMapper {
     ItemDtoRs toItemDtoRs(Item item);
 
     List<ItemDtoRs> toListItemDtoRs(List<Item> items);
+
+    @Mapping(target = "bookerId", source = "booking.booker.id")
+    BookingItemDtoRs toBookingItemDtoRs(Booking booking);
 }

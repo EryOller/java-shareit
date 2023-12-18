@@ -2,7 +2,10 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.user.User;
+import lombok.ToString;
+import ru.practicum.shareit.item.comment.dto.CommentDtoRs;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -11,5 +14,8 @@ public class ItemDtoRs {
     private String name;
     private String description;
     private Boolean available;
-    private User owner;
+    private BookingItemDtoRs lastBooking;
+    private BookingItemDtoRs nextBooking;
+    @ToString.Exclude
+    private List<CommentDtoRs> comments;
 }
