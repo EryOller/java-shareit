@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -10,35 +12,38 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer>, QuerydslPredicateExecutor<Booking> {
 
-    List<Booking> findAllByBookerIdOrderByStartDesc(int id);
+    List<Booking> findAllByBookerIdOrderByStartDesc(int id, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(int id, BookingStatus status);
+    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(int id, BookingStatus status, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(int id, LocalDateTime now);
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(int id, LocalDateTime now, Pageable pageable);
 
-    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(int id, LocalDateTime now);
+    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(int id, LocalDateTime now, Pageable pageable);
 
     @Query("select b from Booking b " +
             "where b.booker.id = :bookerId and " +
             "b.start < :time and " +
             "b.end > :time " +
             "order by b.start desc")
-    List<Booking> findCurrentBookerBookings(@Param("bookerId") int bookerId, @Param("time") LocalDateTime now);
+    List<Booking> findCurrentBookerBookings(@Param("bookerId") int bookerId, @Param("time") LocalDateTime now,
+                                            Pageable pageable);
 
-    List<Booking> findAllByItemOwnerIdOrderByStartDesc(int ownerId);
+    List<Booking> findAllByItemOwnerIdOrderByStartDesc(int ownerId, PageRequest pageReq);
 
-    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(int ownerId, BookingStatus status);
+    List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(int ownerId, BookingStatus status, PageRequest pageReq);
 
-    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(int ownerId, LocalDateTime now);
+    List<Booking> findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(int ownerId, LocalDateTime now, PageRequest pageReq);
 
-    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(int ownerId, LocalDateTime now);
+    List<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartDesc(int ownerId, LocalDateTime now,
+                                                                    PageRequest pageReq);
 
     @Query("select b from Booking b " +
             "where b.item.owner.id = :ownerId and " +
             "b.start < :time and " +
             "b.end > :time " +
             "order by b.start desc")
-    List<Booking> findCurrentOwnerBookings(@Param("ownerId") int ownerId, @Param("time") LocalDateTime now);
+    List<Booking> findCurrentOwnerBookings(@Param("ownerId") int ownerId, @Param("time") LocalDateTime now,
+                                           PageRequest pageReq);
 
     Integer countAllByItemIdAndBookerIdAndEndBefore(int itemId, int userId, LocalDateTime now);
 
@@ -64,4 +69,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
             "b.status <> 'REJECTED' " +
             "order by b.start")
     List<Booking> findAllOwnerBookings(@Param("ownerId") int ownerId);
+
+    List<Booking> findAllByBookerId(Integer userId, Pageable pageable);
 }

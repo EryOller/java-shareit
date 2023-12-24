@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.model;
 import lombok.*;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.comment.model.Comment;
+import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
@@ -36,4 +37,8 @@ public class Item {
     @ElementCollection
     @CollectionTable(name = "comments", joinColumns = @JoinColumn(name = "item_id"))
     private List<Comment> comments = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
+    private ItemRequest request;
 }

@@ -17,4 +17,8 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
             "OR it.description ILIKE %:text%); ",
             nativeQuery = true)
     List<Item> getItemByText(@Param("text") String text);
+
+    List<Item> findAllByRequestIdIn(List<Integer> requestIdList);
+
+    List<Item> findAllByRequestId(Integer requestId);
 }

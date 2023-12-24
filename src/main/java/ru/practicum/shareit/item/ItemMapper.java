@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.dto.ItemDtoRs;
 import ru.practicum.shareit.item.dto.ItemSaveDtoRq;
 import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public interface ItemMapper {
 
     Item toItem(ItemUpdateDtoRq itemDto);
 
+    @Mapping(target = "requestId", source = "item.request.id")
     ItemDtoRs toItemDtoRs(Item item);
 
     List<ItemDtoRs> toListItemDtoRs(List<Item> items);

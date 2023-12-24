@@ -18,4 +18,5 @@ public class ItemUpdateDtoRq {
     private User owner;
     @ToString.Exclude
     private List<CommentDtoRq> comments;
+    private Integer requestId;
 }

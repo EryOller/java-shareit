@@ -18,7 +18,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
-        return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        try {
+            return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        } catch (Exception e) {
+            throw new DuplicateException(e.getMessage());
+        }
     }
 
     @Override
@@ -36,7 +40,7 @@ public class UserServiceImpl implements UserService {
         if (isValidId(userid)) {
             User userUpdate = userMapper.toUser(userDto);
             userUpdate.setId(userid);
-            if (checkDuplicateEmail(userUpdate)) {
+            if (checkDuplicateEmail(userUpdate) && checkDuplicateUserId(userUpdate)) {
                 throw new DuplicateException("Email already exists!");
             } else {
                 User userInRepository = userRepository.findById(userid).get();
@@ -58,9 +62,18 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsById(id);
     }
 
-    public boolean checkDuplicateEmail(User user) {
+    public boolean  checkDuplicateEmail(User user) {
         User userFromRepository = userRepository.getUserByEmail(user.getEmail());
-        if (userFromRepository != null && user.getId() != userFromRepository.getId()) {
+        if (userFromRepository != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean  checkDuplicateUserId(User user) {
+        User userFromRepository = userRepository.getUserByEmail(user.getEmail());
+        if (user.getId() != userFromRepository.getId()) {
             return true;
         } else {
             return false;

@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
@@ -8,6 +10,7 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.UnavailableBookingException;
 import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.pagination_manager.PaginationManager;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
@@ -76,23 +79,11 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    @Override
-    public List<BookingDtoRs>  findAllForBooker(int bookerId, String state) {
-        if (userService.isValidId(bookerId)) {
-            return findBookingsForBooking(state, bookerId)
-                    .stream()
-                    .map(bookingMapper::toBookingDtoRs)
-                    .collect(Collectors.toList());
-        } else {
-            throw new NotFoundException("Пользователь с идентификатором " + bookerId + " не найден");
-        }
-    }
-
-    private List<Booking> findBookingsForBooking(String state, int id) {
+    private List<Booking> findBookingsForBooking(String state, int id, PageRequest pageReq) {
         List<Booking> bookings;
         switch (state) {
             case "ALL":
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(id);
+                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(id, pageReq);
                 return bookings;
             case "WAITING":
             case "APPROVED":
@@ -104,16 +95,16 @@ public class BookingServiceImpl implements BookingService {
                         status = value;
                     }
                 }
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(id, status);
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(id, status, pageReq);
                 break;
             case "PAST":
-                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(id, LocalDateTime.now());
+                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(id, LocalDateTime.now(), pageReq);
                 break;
             case "FUTURE":
-                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(id, LocalDateTime.now());
+                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(id, LocalDateTime.now(), pageReq);
                 break;
             case "CURRENT":
-                bookings = bookingRepository.findCurrentBookerBookings(id, LocalDateTime.now());
+                bookings = bookingRepository.findCurrentBookerBookings(id, LocalDateTime.now(), pageReq);
                 break;
             default:
                 throw new BadRequestException("Unknown state: " + state);
@@ -122,26 +113,41 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoRs> findAllForOwner(int ownerId, String state) {
-        if (userService.isValidId(ownerId)) {
-            if (itemService.getAllItemsByUserId(ownerId).isEmpty()) {
-                throw new NotFoundException("Вещи не найдены");
-            }
-            return findBookingsForOwner(state, ownerId)
+    public List<BookingDtoRs> getBookingListWithPagination(int userId, String state, int from, int size) {
+
+        if (userService.isValidId(userId)) {
+            PageRequest pageReq = PaginationManager.form(from, size, Sort.Direction.DESC, "start");
+            return findBookingsForBooking(state, userId, pageReq)
                     .stream()
                     .map(bookingMapper::toBookingDtoRs)
                     .collect(Collectors.toList());
         } else {
-            throw new NotFoundException("Пользователь с идентификатором " + ownerId + " не найден");
+            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
     }
 
-    private List<Booking> findBookingsForOwner(String state, int id) {
+    @Override
+    public List<BookingDtoRs> getByOwner(int userId, String state, int from, int size) {
+        if (userService.isValidId(userId)) {
+            if (itemService.getAllItemsByUserId(userId).isEmpty()) {
+                throw new NotFoundException("Вещи не найдены");
+            }
+            PageRequest pageReq = PaginationManager.form(from, size, Sort.Direction.DESC, "start");
+            return findBookingsForOwner(state, userId, pageReq)
+                    .stream()
+                    .map(bookingMapper::toBookingDtoRs)
+                    .collect(Collectors.toList());
+        } else {
+            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
+        }
+    }
+
+    private List<Booking> findBookingsForOwner(String state, int id, PageRequest pageReq) {
         List<Booking> bookings;
 
         switch (state) {
             case "ALL":
-                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(id);
+                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(id, pageReq);
                 return bookings;
             case "WAITING":
             case "APPROVED":
@@ -154,16 +160,18 @@ public class BookingServiceImpl implements BookingService {
                         status = value;
                     }
                 }
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(id, status);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(id, status, pageReq);
                 break;
             case "PAST":
-                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(id, LocalDateTime.now());
+                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(id, LocalDateTime.now(),
+                        pageReq);
                 break;
             case "FUTURE":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(id, LocalDateTime.now());
+                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(id, LocalDateTime.now(),
+                        pageReq);
                 break;
             case "CURRENT":
-                bookings = bookingRepository.findCurrentOwnerBookings(id, LocalDateTime.now());
+                bookings = bookingRepository.findCurrentOwnerBookings(id, LocalDateTime.now(), pageReq);
                 break;
             default:
                 throw new BadRequestException("Unknown state: " + state);
