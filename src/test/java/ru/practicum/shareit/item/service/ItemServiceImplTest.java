@@ -158,7 +158,7 @@ public class ItemServiceImplTest {
                 .thenReturn(Optional.empty());
 
         invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
-                () -> itemService.createComment(commentDtoRq, 3, 1)); //(3, 1, commentDto));
+                () -> itemService.createComment(commentDtoRq, 3, 1));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь с идентификатором 1 не найден"));
     }
 
