@@ -35,14 +35,14 @@ public class BookingServiceImpl implements BookingService {
         }
         if (itemService.isValid(bookingDto.getItemId()) &&
                 itemService.findItemById(bookingDto.getItemId()).getOwner().getId() != userId) {
-            if (itemService.getItemById(userId, bookingDto.getItemId()).getAvailable()) {
+            if (itemService.isAvailableItem(userId, bookingDto.getItemId())   /*itemService.getItemById(userId, bookingDto.getItemId()).getAvailable()*/) {
                 Booking booking = bookingMapper.toBooking(bookingDto);
                 booking.setBooker(userService.findUserById(userId));
                 booking.setStatus(BookingStatus.WAITING);
                 booking.setItem(itemService.findItemById(bookingDto.getItemId()));
                 return bookingMapper.toBookingDtoRs(bookingRepository.save(booking));
             } else {
-                throw new UnavailableBookingException("Бранирование вещи с id " + bookingDto.getItemId()
+                throw new UnavailableBookingException("Бронирование вещи с id " + bookingDto.getItemId()
                         + " не доступно!");
             }
         } else {
@@ -129,9 +129,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDtoRs> getByOwner(int userId, String state, int from, int size) {
         if (userService.isValidId(userId)) {
-            if (itemService.getAllItemsByUserId(userId).isEmpty()) {
-                throw new NotFoundException("Вещи не найдены");
-            }
             PageRequest pageReq = PaginationManager.form(from, size, Sort.Direction.DESC, "start");
             return findBookingsForOwner(state, userId, pageReq)
                     .stream()

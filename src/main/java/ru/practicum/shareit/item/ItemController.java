@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.comment.dto.CommentDtoRq;
 import ru.practicum.shareit.item.comment.dto.CommentDtoRs;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequestMapping("/items")
+@Transactional
 public class ItemController {
     private ItemService itemService;
 
@@ -44,15 +46,19 @@ public class ItemController {
     }
 
     @GetMapping()
-    public List<ItemDtoRs> getAllItems(@RequestHeader("X-Sharer-User-Id") int userId) {
-        log.info("Получен запрос GET /items — на получение списка вещей владельца");
-        return itemService.getAllItemsByUserId(userId);
+    public List<ItemDtoRs> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
+                                              @RequestParam(defaultValue = "0") int from,
+                                              @RequestParam(defaultValue = "10") int size) {
+        log.info("поступил запрос на получение списка вещей постранично");
+        return itemService.getAllItemWithPagination(userId, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDtoRs> getAllItemsByText(@RequestParam String text) {
+    public List<ItemDtoRs> getAllItemsByText(@RequestParam String text,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "10") int size) {
         log.info("Получен запрос GET /items/search — на поиск вещей по тексту");
-        return itemService.searchItemByText(text);
+        return itemService.searchItemByTextWithPagination(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

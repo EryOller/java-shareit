@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Setter
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "bookings", schema = "public")

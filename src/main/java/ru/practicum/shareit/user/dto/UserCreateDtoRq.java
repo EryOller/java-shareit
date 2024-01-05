@@ -6,7 +6,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 @Data
-@AllArgsConstructor
+@Builder
 public class UserCreateDtoRq {
     private String name;
     @Email

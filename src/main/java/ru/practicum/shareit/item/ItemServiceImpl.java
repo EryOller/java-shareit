@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -16,6 +18,7 @@ import ru.practicum.shareit.item.dto.ItemDtoRs;
 import ru.practicum.shareit.item.dto.ItemSaveDtoRq;
 import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.pagination_manager.PaginationManager;
 import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
@@ -55,70 +58,85 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDtoRs update(int userId, int itemId, ItemUpdateDtoRq itemDto) {
-        Item itemFromRepository = itemRepository.findById(itemId).get();
-        if (itemFromRepository.getOwner().getId() == userId) {
-            itemDto.setOwner(userService.findUserById(userId));
-            Item item = itemMapper.toItem(itemDto);
-            return updateItemByField(itemFromRepository, item);
+        if (userService.isValidId(userId)) {
+            Item itemFromRepository = itemRepository.findById(itemId).get();
+            if (itemFromRepository.getOwner().getId() == userId) {
+                itemDto.setOwner(userService.findUserById(userId));
+                Item item = itemMapper.toItem(itemDto);
+                return updateItemByField(itemFromRepository, item);
+            } else {
+                throw new EditForbiddenException("Edit is forbidden for user with id " + userId);
+            }
         } else {
-            throw new EditForbiddenException("Edit is forbidden for user with id " + userId);
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 
     @Override
     public ItemDtoRs getItemById(int userId, int itemId) {
-        Item item = itemRepository.findById(itemId)
+        if (userService.isValidId(userId)) {
+            Item item = itemRepository.findById(itemId)
                     .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
-        Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(), userId,
-                        LocalDateTime.now())
-                .stream()
-                .findFirst()
-                .orElse(null);
-        item.setLastBooking(lastBooking);
-        Booking nextBooking = bookingRepository.findFutureOwnerBookings(item.getId(), userId,
-                        LocalDateTime.now())
-                 .stream()
-                .findFirst()
-                .orElse(null);
-        item.setNextBooking(nextBooking);
-        item.setComments(commentRepository.findCommentsByItemId(itemId));
-        ItemDtoRs itemDtoRs = itemMapper.toItemDtoRs(item);
-        itemDtoRs.setComments(commentMapper.toListCommentDtoRs(item.getComments()));
-        return itemDtoRs;
+            Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(), userId,
+                            LocalDateTime.now())
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            item.setLastBooking(lastBooking);
+            Booking nextBooking = bookingRepository.findFutureOwnerBookings(item.getId(), userId,
+                            LocalDateTime.now())
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            item.setNextBooking(nextBooking);
+            item.setComments(commentRepository.findCommentsByItemId(itemId));
+            ItemDtoRs itemDtoRs = itemMapper.toItemDtoRs(item);
+            itemDtoRs.setComments(commentMapper.toListCommentDtoRs(item.getComments()));
+            return itemDtoRs;
+        } else {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
     }
 
     @Override
-    public List<ItemDtoRs> getAllItemsByUserId(int userId) {
-        List<Item> items = itemRepository.getListItemsByOwnerIdOrderByIdAsc(userId);
-        List<Booking> bookings = bookingRepository
-                .findAllOwnerBookings(userId);
-        List<Comment> comments = commentRepository.findAllCommentsByItemOwnerId(userId);
-        return itemMapper.toListItemDtoRs(
-                items.stream()
-                .peek(item -> {
-                    item.setNextBooking(bookings.stream()
-                            .filter(booking -> booking.getStart().isAfter(LocalDateTime.now())
-                                    && booking.getItem().getId() == item.getId())
-                            .findFirst().orElse(null));
-                    item.setLastBooking(bookings.stream()
-                            .filter(booking -> booking.getStart().isBefore(LocalDateTime.now())
-                                    && booking.getItem().getId() == item.getId())
-                            .findFirst().orElse(null));
-                    item.setComments(
-                            comments.stream()
-                                    .filter(comment -> comment.getItem().getId() == item.getId())
-                                    .collect(Collectors.toList()));
+    public List<ItemDtoRs> getAllItemWithPagination(int userId, int from, int size) {
+        if (userService.isValidId(userId)) {
+            PageRequest pageReq = PaginationManager.form(from, size, Sort.Direction.DESC, "id");
+            List<Item> items = itemRepository.getListItemsByOwnerIdOrderByIdAsc(userId, pageReq);
+            List<Booking> bookings = bookingRepository
+                    .findAllOwnerBookings(userId);
+            List<Comment> comments = commentRepository.findAllCommentsByItemOwnerId(userId);
+            return itemMapper.toListItemDtoRs(
+                    items.stream()
+                            .peek(item -> {
+                                item.setNextBooking(bookings.stream()
+                                        .filter(booking -> booking.getStart().isAfter(LocalDateTime.now())
+                                                && booking.getItem().getId() == item.getId())
+                                        .findFirst().orElse(null));
+                                item.setLastBooking(bookings.stream()
+                                        .filter(booking -> booking.getStart().isBefore(LocalDateTime.now())
+                                                && booking.getItem().getId() == item.getId())
+                                        .findFirst().orElse(null));
+                                item.setComments(
+                                        comments.stream()
+                                                .filter(comment -> comment.getItem().getId() == item.getId())
+                                                .collect(Collectors.toList()));
 
-                }).collect(Collectors.toList())
-        );
+                            }).collect(Collectors.toList())
+            );
+        } else {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
     }
 
     @Override
-    public List<ItemDtoRs> searchItemByText(String text) {
+    public List<ItemDtoRs> searchItemByTextWithPagination(String text, int from, int size) {
+
         if (text.isEmpty() || text.isBlank()) {
             return new ArrayList<>(0);
         } else {
-            return itemMapper.toListItemDtoRs(itemRepository.getItemByText(text));
+            PageRequest pageReq = PaginationManager.form(from, size/*, Sort.Direction.DESC, "start"*/);
+            return itemMapper.toListItemDtoRs(itemRepository.getItemByText(text, pageReq));
         }
     }
 
@@ -133,23 +151,33 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public boolean isAvailableItem(int userId, int itemId) {
+        return getItemById(userId, itemId).getAvailable();
+    }
+
+    @Override
     public CommentDtoRs createComment(CommentDtoRq commentDtoRq, int itemId, int userId) {
-        if (commentDtoRq.getText() == null || commentDtoRq.getText().equals("")) {
-            throw new BadRequestException("Отзыв не может быть пустым");
+        if (userService.isValidId(userId)) {
+            if (commentDtoRq.getText() == null || commentDtoRq.getText().equals("")) {
+                throw new BadRequestException("Отзыв не может быть пустым");
+            }
+            Integer bookingsCount = bookingRepository.countAllByItemIdAndBookerIdAndEndBefore(itemId, userId,
+                    LocalDateTime.now());
+            if (bookingsCount == null || bookingsCount == 0) {
+                throw new BadRequestException("Вещь еще ниразу не бронировалась");
+            }
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new NoSuchElementException("вещь c идентификатором " + itemId + " не существует"));
+            User user = userService.findUserById(userId);
+            Comment comment = commentMapper.toComment(commentDtoRq);
+            comment.setItem(item);
+            comment.setAuthor(user);
+            comment.setCreated(LocalDateTime.now());
+            return commentMapper.toCommentDtoRs(commentRepository.save(comment));
+        } else {
+            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
-        Integer bookingsCount = bookingRepository.countAllByItemIdAndBookerIdAndEndBefore(itemId, userId,
-                LocalDateTime.now());
-        if (bookingsCount == null || bookingsCount == 0) {
-            throw new BadRequestException("сначала надо взять эту вещь");
-        }
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NoSuchElementException("вещь c идентификатором " + itemId + " не существует"));
-        User user = userService.findUserById(userId);
-        Comment comment = commentMapper.toComment(commentDtoRq);
-        comment.setItem(item);
-        comment.setAuthor(user);
-        comment.setCreated(LocalDateTime.now());
-        return commentMapper.toCommentDtoRs(commentRepository.save(comment));
+
     }
 
     @Transactional

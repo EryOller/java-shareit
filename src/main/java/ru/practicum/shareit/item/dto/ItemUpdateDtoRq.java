@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import ru.practicum.shareit.item.comment.dto.CommentDtoRq;
 import ru.practicum.shareit.user.User;
@@ -9,7 +9,7 @@ import ru.practicum.shareit.user.User;
 import java.util.List;
 
 @Data
-@RequiredArgsConstructor
+@Builder
 public class ItemUpdateDtoRq {
     private int id;
     private String name;

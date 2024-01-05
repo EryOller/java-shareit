@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Setter
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "items", schema = "public")
 public class Item {
     @Id

@@ -70,5 +70,5 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
             "order by b.start")
     List<Booking> findAllOwnerBookings(@Param("ownerId") int ownerId);
 
-    List<Booking> findAllByBookerId(Integer userId, Pageable pageable);
+    List<Booking> findAllByBookerId(Integer userId, Pageable pageable); // возможно нужно удалить так как не используется
 }
