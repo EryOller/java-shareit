@@ -72,7 +72,7 @@ public class BookingRepositoryTest {
         booking.setEnd(end);
 
         User ownerInMemory = userRepository.save(owner);
-        User bookerInMemory =userRepository.save(booker);
+        User bookerInMemory = userRepository.save(booker);
         item.setOwner(ownerInMemory);
         itemRepository.save(item);
         booking.setBooker(bookerInMemory);
@@ -96,7 +96,7 @@ public class BookingRepositoryTest {
         booking.setEnd(end);
 
         User ownerInMemory = userRepository.save(owner);
-        User bookerInMemory =userRepository.save(booker);
+        User bookerInMemory = userRepository.save(booker);
         item.setOwner(ownerInMemory);
         itemRepository.save(item);
         booking.setBooker(bookerInMemory);
