@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingService;
@@ -622,7 +621,7 @@ public class ItemServiceImplTest {
     }
 
     @Test
-    void EditForbiddenException() {
+    void editForbiddenException() {
         ItemUpdateDtoRq itemDtoRq = ItemUpdateDtoRq.builder()
                 .name("nameUpdated")
                 .description("descriptionUpdated")

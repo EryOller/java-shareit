@@ -18,7 +18,6 @@ import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
