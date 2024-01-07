@@ -16,13 +16,16 @@ public interface ItemService {
 
     ItemDtoRs getItemById(int userId, int itemId);
 
-    List<ItemDtoRs> getAllItemsByUserId(int userId);
+    List<ItemDtoRs> getAllItemWithPagination(int userId, int from, int size);
 
-    List<ItemDtoRs> searchItemByText(String text);
+
+    List<ItemDtoRs> searchItemByTextWithPagination(String text, int from, int size);
 
     Item findItemById(int itemId);
 
     boolean isValid(int itemId);
+
+    boolean isAvailableItem(int userId, int itemId);
 
     CommentDtoRs createComment(CommentDtoRq commentDtoLittle, int itemId, int userId);
 }

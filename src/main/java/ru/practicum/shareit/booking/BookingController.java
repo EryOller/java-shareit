@@ -44,16 +44,20 @@ public class BookingController {
 
     @GetMapping()
     public List<BookingDtoRs> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
-                                              @RequestParam(required = false, defaultValue = "ALL") String state) {
+                                              @RequestParam(required = false, defaultValue = "ALL") String state,
+                                              @RequestParam(defaultValue = "0") int from,
+                                              @RequestParam(defaultValue = "10") int size) {
         log.info("поступил запрос на получение списка бронирований со статусом {} пользователя с id {}", state, userId);
-        return bookingService.findAllForBooker(userId, state);
+        return bookingService.getBookingListWithPagination(userId, state, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingDtoRs> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int owner,
-                                            @RequestParam(required = false, defaultValue = "ALL") String state) {
+    public List<BookingDtoRs> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int userId,
+                                             @RequestParam(defaultValue = "ALL") String state,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "10") int size) {
         log.info("поступил запрос на получение списка бронирований со статусом {} для вещей пользователя с id {}",
-                state, owner);
-        return bookingService.findAllForOwner(owner, state);
+                state, userId);
+        return bookingService.getByOwner(userId, state, from, size);
     }
 }

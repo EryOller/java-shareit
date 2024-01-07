@@ -18,7 +18,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
-        return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        try {
+            return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        } catch (Exception e) {
+            throw new DuplicateException("Почта уже существует");
+        }
     }
 
     @Override
@@ -58,9 +62,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsById(id);
     }
 
-    public boolean checkDuplicateEmail(User user) {
+    public boolean  checkDuplicateEmail(User user) {
         User userFromRepository = userRepository.getUserByEmail(user.getEmail());
-        if (userFromRepository != null && user.getId() != userFromRepository.getId()) {
+        if (userFromRepository != null && userFromRepository.getId() != user.getId()) {
             return true;
         } else {
             return false;
