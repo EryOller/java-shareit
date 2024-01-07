@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
         try {
             return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
         } catch (Exception e) {
-            throw new DuplicateException(e.getMessage());
+            throw new DuplicateException("Почта уже существует");
         }
     }
 
@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
         if (isValidId(userid)) {
             User userUpdate = userMapper.toUser(userDto);
             userUpdate.setId(userid);
-            if (checkDuplicateEmail(userUpdate) && checkDuplicateUserId(userUpdate)) {
+            if (checkDuplicateEmail(userUpdate)) {
                 throw new DuplicateException("Email already exists!");
             } else {
                 User userInRepository = userRepository.findById(userid).get();
@@ -64,16 +64,7 @@ public class UserServiceImpl implements UserService {
 
     public boolean  checkDuplicateEmail(User user) {
         User userFromRepository = userRepository.getUserByEmail(user.getEmail());
-        if (userFromRepository != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public boolean  checkDuplicateUserId(User user) {
-        User userFromRepository = userRepository.getUserByEmail(user.getEmail());
-        if (user.getId() != userFromRepository.getId()) {
+        if (userFromRepository != null && userFromRepository.getId() != user.getId()) {
             return true;
         } else {
             return false;

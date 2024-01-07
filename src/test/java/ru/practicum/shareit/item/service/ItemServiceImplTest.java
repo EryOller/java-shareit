@@ -6,10 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.BookingStatus;
+import ru.practicum.shareit.exception.EditForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.PaginationException;
 import ru.practicum.shareit.item.ItemRepository;
@@ -388,55 +390,90 @@ public class ItemServiceImplTest {
         List<ItemDtoRs> itemRsList = itemService.getAllItemWithPagination(2, 0, 10);
         Assertions.assertTrue(itemRsList.isEmpty());
 
-        Item item = Item.builder()
+        Item itemOne = Item.builder()
                 .id(1)
-                .name("name")
-                .description("description")
+                .name("Max")
+                .description("Пила")
+                .available(true)
+                .owner(owner)
+                .build();
+        Item itemTwo = Item.builder()
+                .id(2)
+                .name("Oleg")
+                .description("Дерево")
                 .available(true)
                 .owner(owner)
                 .build();
 
         List<Item> items = new ArrayList<>();
-        items.add(item);
+        items.add(itemOne);
+        items.add(itemTwo);
 
-        when(itemRepository.findAllByOwnerId(any(), any()))
+        when(itemRepository.getListItemsByOwnerIdOrderByIdAsc(anyInt(), any()))
                 .thenReturn(items);
 
         LocalDateTime created = LocalDateTime.now();
-        Comment comment = Comment.builder()
+        Comment commentOne = Comment.builder()
                 .id(1)
                 .text("text")
-                .item(item)
+                .item(itemOne)
                 .author(booker)
                 .created(created)
                 .build();
-        List<Comment> commentList = List.of(comment);
+
+        Comment commentTwo = Comment.builder()
+                .id(1)
+                .text("text")
+                .item(itemTwo)
+                .author(booker)
+                .created(created.plusDays(1))
+                .build();
+
+        List<Comment> commentList = List.of(commentOne, commentTwo);
 
         when(commentRepository.findCommentsByItemId(anyInt()))
                 .thenReturn(commentList);
 
-        Booking lastBooking = Booking.builder()
+        Booking lastBookingForOneItem = Booking.builder()
                 .id(1)
                 .start(created.minusMonths(5))
                 .end(created.minusMonths(4))
-                .item(item)
+                .item(itemOne)
                 .booker(booker)
                 .status(BookingStatus.APPROVED)
                 .build();
 
-        Booking nextBooking = Booking.builder()
+        Booking nextBookingForOneItem = Booking.builder()
                 .id(2)
                 .start(created.plusDays(1))
                 .end(created.plusDays(2))
-                .item(item)
+                .item(itemOne)
                 .booker(booker)
                 .status(BookingStatus.APPROVED)
                 .build();
 
-        when(bookingRepository.findPastOwnerBookings(anyInt(), anyInt(),any()))
-                .thenReturn(List.of(lastBooking));
-        when(bookingRepository.findFutureOwnerBookings(anyInt(), anyInt(), any()))
-                .thenReturn(List.of(nextBooking));
+        Booking lastBookingForTwoItem = Booking.builder()
+                .id(3)
+                .start(created.minusMonths(5))
+                .end(created.minusMonths(4))
+                .item(itemTwo)
+                .booker(booker)
+                .status(BookingStatus.APPROVED)
+                .build();
+
+        Booking nextBookingForTwoItem = Booking.builder()
+                .id(4)
+                .start(created.plusDays(2))
+                .end(created.plusDays(3))
+                .item(itemTwo)
+                .booker(booker)
+                .status(BookingStatus.APPROVED)
+                .build();
+
+        List<Booking> bookings = List.of(lastBookingForOneItem, lastBookingForTwoItem, nextBookingForOneItem,
+                nextBookingForTwoItem);
+        when(bookingRepository.findAllOwnerBookings(anyInt()))
+                .thenReturn(bookings);
 
         itemRsList = itemService.getAllItemWithPagination(2, 0, 10);
         assertThat(itemRsList, is(notNullValue()));
@@ -582,5 +619,71 @@ public class ItemServiceImplTest {
                 .build();
         CommentDtoRs commentDtoRs = itemService.createComment(commentDtoRq, 3, 1);
         assertThat(commentDtoRs, is(notNullValue()));
+    }
+
+    @Test
+    void EditForbiddenException() {
+        ItemUpdateDtoRq itemDtoRq = ItemUpdateDtoRq.builder()
+                .name("nameUpdated")
+                .description("descriptionUpdated")
+                .build();
+
+        User owner = User.builder()
+                .id(2)
+                .name("user2")
+                .email("user2@email.com")
+                .build();
+
+        Item item = Item.builder()
+                .id(1)
+                .name("name")
+                .description("description")
+                .available(true)
+                .owner(owner)
+                .build();
+
+        when(userService.isValidId(anyInt()))
+                .thenReturn(true);
+
+        when(itemRepository.findById(anyInt()))
+                .thenReturn(Optional.of(item));
+
+        EditForbiddenException forbiddenException;
+        forbiddenException = Assertions.assertThrows(EditForbiddenException.class,
+                () -> itemService.update(1, 1, itemDtoRq));
+        assertThat(forbiddenException.getMessage(), is("Edit is forbidden for user with id 1"));
+    }
+
+    @Test
+    void twoItemsWithBroForbiddenException() {
+        ItemUpdateDtoRq itemDtoRq = ItemUpdateDtoRq.builder()
+                .name("nameUpdated")
+                .description("descriptionUpdated")
+                .build();
+
+        User owner = User.builder()
+                .id(2)
+                .name("user2")
+                .email("user2@email.com")
+                .build();
+
+        Item item = Item.builder()
+                .id(1)
+                .name("name")
+                .description("description")
+                .available(true)
+                .owner(owner)
+                .build();
+
+        when(userService.isValidId(anyInt()))
+                .thenReturn(true);
+
+        when(itemRepository.findById(anyInt()))
+                .thenReturn(Optional.of(item));
+
+        EditForbiddenException forbiddenException;
+        forbiddenException = Assertions.assertThrows(EditForbiddenException.class,
+                () -> itemService.update(1, 1, itemDtoRq));
+        assertThat(forbiddenException.getMessage(), is("Edit is forbidden for user with id 1"));
     }
 }

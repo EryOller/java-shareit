@@ -5,7 +5,8 @@ import lombok.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
-@Data
+@Setter
+@Getter
 @Builder
 public class UserCreateDtoRq {
     private String name;

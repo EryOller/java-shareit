@@ -37,7 +37,6 @@ public class ItemControllerTest {
 
     @MockBean
     private ItemService itemService;
-
     @Autowired
     private MockMvc mvc;
 

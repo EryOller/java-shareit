@@ -25,6 +25,4 @@ public interface ItemRequestMapper {
     default List<ItemDtoRs> setItems() {
         return Collections.emptyList();
     }
-
-    List<ItemRequestDtoRs> toListRequestDtoRs(List<ItemRequest> requests);
 }

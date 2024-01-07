@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.exception.DuplicateException;
 import ru.practicum.shareit.user.UserController;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
@@ -16,11 +18,14 @@ import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,7 +36,7 @@ public class UserControllerTest {
     ObjectMapper mapper;
 
     @MockBean
-    UserService mockUserService;
+    UserService userService;
 
     @Autowired
     private MockMvc mvc;
@@ -75,7 +80,7 @@ public class UserControllerTest {
 
     @Test
     void create() throws Exception {
-        when(mockUserService.save(userDtoCreateTest))
+        when(userService.save(any(UserCreateDtoRq.class)))
                 .thenReturn(userDtoCreated);
 
         mvc.perform(post("/users")
@@ -91,7 +96,7 @@ public class UserControllerTest {
 
     @Test
     void update() throws Exception {
-        when(mockUserService.updateUserById(1, userDtoUpdateTest)).thenReturn(userDtoUpdated);
+        when(userService.updateUserById(anyInt(),any(UserUpdateDtoRq.class))).thenReturn(userDtoUpdated);
 
         mvc.perform(patch("/users/1")
                         .content(mapper.writeValueAsString(userDtoUpdateTest))
@@ -106,7 +111,7 @@ public class UserControllerTest {
 
     @Test
     void getUserDto() throws Exception {
-        when(mockUserService.findById(1)).thenReturn(userDtoUpdated);
+        when(userService.findById(1)).thenReturn(userDtoUpdated);
 
         mvc.perform(get("/users/1")
                         .accept(MediaType.APPLICATION_JSON))
@@ -121,12 +126,12 @@ public class UserControllerTest {
         mvc.perform(delete("/users/1")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        verify(mockUserService).deleteUserById(1);
+        verify(userService).deleteUserById(1);
     }
 
     @Test
     void getAll() throws Exception {
-        when(mockUserService.getUsers())
+        when(userService.getUsers())
                 .thenReturn(List.of(userDtoUpdated));
 
         mvc.perform(get("/users")
@@ -135,5 +140,18 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$[0].id", is(userDtoUpdated.getId()), Integer.class))
                 .andExpect(jsonPath("$[0].name", is(userDtoUpdated.getName())))
                 .andExpect(jsonPath("$[0].email", is(userDtoUpdated.getEmail())));
+    }
+
+    @Test
+    void throwDuplicateException() {
+
+        when(userService.save(any()))
+                .thenThrow(new DuplicateException("Почта уже существует"));
+
+        DuplicateException duplicateException;
+
+        duplicateException = Assertions.assertThrows(DuplicateException.class,
+                () -> userService.save(userDtoCreateTest));
+        assertThat(duplicateException.getMessage(), is("Почта уже существует"));
     }
 }
