@@ -3,11 +3,13 @@ package ru.practicum.shareit.booking.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.BookingController;
@@ -15,6 +17,7 @@ import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
+import ru.practicum.shareit.exception.ErrorResponse;
 import ru.practicum.shareit.item.dto.ItemDtoRs;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -194,5 +198,17 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$[0].item.name", is(bookingDtoRs.getItem().getName())))
                 .andExpect(jsonPath("$[0].booker.id", is(bookingDtoRs.getBooker().getId()), Integer.class))
                 .andExpect(jsonPath("$[0].status", is(bookingDtoRs.getStatus().toString())));
+    }
+
+    @Test
+    void throwBadRequestException() {
+        Exception exception = new Exception("Error");
+        when(bookingService.getBookingListWithPagination(anyInt(), anyString(), anyInt(), anyInt()))
+                .thenThrow(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
+        ErrorResponse errorResponse;
+        errorResponse= Assertions.assertThrows(ErrorResponse.class,
+                () -> bookingService.getBookingListWithPagination(1, "test", 0, 10));
+        assertThat(errorResponse.getCode(), is(400));
+        assertThat(errorResponse.getError(), is("Error"));
     }
 }
