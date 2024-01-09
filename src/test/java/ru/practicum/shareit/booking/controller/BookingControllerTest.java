@@ -206,7 +206,7 @@ public class BookingControllerTest {
         when(bookingService.getBookingListWithPagination(anyInt(), anyString(), anyInt(), anyInt()))
                 .thenThrow(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
         ErrorResponse errorResponse;
-        errorResponse= Assertions.assertThrows(ErrorResponse.class,
+        errorResponse = Assertions.assertThrows(ErrorResponse.class,
                 () -> bookingService.getBookingListWithPagination(1, "test", 0, 10));
         assertThat(errorResponse.getCode(), is(400));
         assertThat(errorResponse.getError(), is("Error"));
