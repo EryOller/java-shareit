@@ -8,7 +8,6 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.EditForbiddenException;
 import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.comment.dto.CommentDtoRq;
@@ -25,6 +24,7 @@ import ru.practicum.shareit.user.UserService;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +51,7 @@ public class ItemServiceImpl implements ItemService {
             item.setOwner(userService.findUserById(ownerId));
             return itemMapper.toItemDtoRs(itemRepository.save(item));
         } else {
-            throw new NotFoundException("Владелец вещи с id " + ownerId + " не найден");
+            throw new EntityNotFoundException("Владелец вещи с id " + ownerId + " не найден");
         }
     }
 
@@ -68,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
                 throw new EditForbiddenException("Edit is forbidden for user with id " + userId);
             }
         } else {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoRs getItemById(int userId, int itemId) {
         if (userService.isValidId(userId)) {
             Item item = itemRepository.findById(itemId)
-                    .orElseThrow(() -> new NotFoundException("Вещь с id " + itemId + " не найдена"));
+                    .orElseThrow(() -> new EntityNotFoundException("Пользователь с id " + userId + " не найден"));
             Booking lastBooking = bookingRepository.findPastOwnerBookings(item.getId(), userId,
                             LocalDateTime.now())
                     .stream()
@@ -94,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
             itemDtoRs.setComments(commentMapper.toListCommentDtoRs(item.getComments()));
             return itemDtoRs;
         } else {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 
@@ -125,7 +125,7 @@ public class ItemServiceImpl implements ItemService {
                             }).collect(Collectors.toList())
             );
         } else {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 
@@ -135,7 +135,7 @@ public class ItemServiceImpl implements ItemService {
         if (text.isEmpty() || text.isBlank()) {
             return new ArrayList<>(0);
         } else {
-            PageRequest pageReq = PaginationManager.form(from, size/*, Sort.Direction.DESC, "start"*/);
+            PageRequest pageReq = PaginationManager.form(from, size);
             return itemMapper.toListItemDtoRs(itemRepository.getItemByText(text, pageReq));
         }
     }
@@ -175,9 +175,8 @@ public class ItemServiceImpl implements ItemService {
             comment.setCreated(LocalDateTime.now());
             return commentMapper.toCommentDtoRs(commentRepository.save(comment));
         } else {
-            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
-
     }
 
     @Transactional

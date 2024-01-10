@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.PaginationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -18,6 +17,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDtoRs;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -88,17 +89,17 @@ public class ItemRequestServiceTest {
                 .description("description")
                 .build();
 
-        NotFoundException invalidUserIdException;
+        EntityNotFoundException invalidUserIdException;
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemRequestService.createItemRequest(2, requestDto));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь не найден"));
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemRequestService.getListItemRequestWithPagination(2, 0, 10));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь не найден"));
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemRequestService.getItemRequestById(2, 1));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь не найден"));
     }
@@ -111,8 +112,8 @@ public class ItemRequestServiceTest {
                 .email("user2@email.com")
                 .build();
 
-        when(userRepository.findById(2))
-                .thenReturn(Optional.of(requester));
+        when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
 
         when(itemRequestRepository.findAllByRequesterIdOrderByCreatedDesc(2))
                 .thenReturn(new ArrayList<>());
@@ -177,8 +178,8 @@ public class ItemRequestServiceTest {
                 .email("user1@email.com")
                 .build();
 
-        when(userRepository.findById(1))
-                .thenReturn(Optional.of(owner));
+        when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
 
         LocalDateTime requestCreationDate = LocalDateTime.now();
 
@@ -240,6 +241,8 @@ public class ItemRequestServiceTest {
 
         when(userRepository.findById(1))
                 .thenReturn(Optional.of(owner));
+        when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
 
         PaginationException invalidPageParamsException;
 
@@ -260,8 +263,8 @@ public class ItemRequestServiceTest {
                 .email("user1@email.com")
                 .build();
 
-        when(userRepository.findById(1))
-                .thenReturn(Optional.of(owner));
+        when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
 
         LocalDateTime requestCreationDate = LocalDateTime.now();
 
@@ -310,11 +313,10 @@ public class ItemRequestServiceTest {
 
         when(userRepository.findById(1))
                 .thenReturn(Optional.of(owner));
+        when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
 
-        when(itemRequestRepository.findItemRequestById(any()))
-                .thenReturn(Optional.empty());
-
-        NotFoundException invalidItemRequestIdException = Assertions.assertThrows(NotFoundException.class,
+        EntityNotFoundException invalidItemRequestIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemRequestService.getItemRequestById(1, 1));
         assertThat(invalidItemRequestIdException.getMessage(), is("Запрос не найден"));
     }

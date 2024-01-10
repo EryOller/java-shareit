@@ -14,7 +14,6 @@ import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.PaginationException;
 import ru.practicum.shareit.exception.UnavailableBookingException;
 import ru.practicum.shareit.item.ItemMapper;
@@ -25,6 +24,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -125,11 +125,11 @@ public class BookingServiceImplTest {
                 .itemId(1)
                 .build();
 
-        NotFoundException invalidItemIdException;
+        EntityNotFoundException invalidItemIdException;
 
         when(itemRepository.findById(1))
                 .thenReturn(Optional.empty());
-        invalidItemIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidItemIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.save(3, bookingDto));
         assertThat(invalidItemIdException.getMessage(), is("Вещь с идентификатором 1 не найдена"));
     }
@@ -235,15 +235,15 @@ public class BookingServiceImplTest {
         when(userRepository.findById(3))
                 .thenReturn(Optional.empty());
 
-        NotFoundException notFoundException;
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        EntityNotFoundException notFoundException;
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.save(3, bookingDto));
         assertThat(notFoundException.getMessage(), is("Вещь с идентификатором 1 не найдена"));
 
         when(userRepository.findById(1))
                 .thenReturn(Optional.of(owner));
 
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.save(1, bookingDto));
         assertThat(notFoundException.getMessage(), is("Вещь с идентификатором 1 не найдена"));
 
@@ -258,12 +258,12 @@ public class BookingServiceImplTest {
         when(bookingRepository.findById(1))
                 .thenReturn(Optional.of(booking));
 
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.approve(3, 1, true));
         assertThat(notFoundException.getMessage(),
                 is("Пользователь с идентификатором 3 не может подтверждать или отклонять пронирование 1"));
 
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.getBookingById(2, 1));
         assertThat(notFoundException.getMessage(),
                 is("Пользователь с идентификатором 2 не может редактировать бронирование 1"));
@@ -271,11 +271,11 @@ public class BookingServiceImplTest {
         when(userRepository.findById(2))
                 .thenReturn(Optional.empty());
 
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.getBookingListWithPagination(2, "ALL", 0, 10));
         assertThat(notFoundException.getMessage(), is("Пользователь с идентификатором 2 не найден"));
 
-        notFoundException = Assertions.assertThrows(NotFoundException.class,
+        notFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.getByOwner(2, "ALL", 0, 10));
         assertThat(notFoundException.getMessage(), is("Пользователь с идентификатором 2 не найден"));
     }
@@ -390,9 +390,9 @@ public class BookingServiceImplTest {
         when(bookingRepository.findById(1))
                 .thenReturn(Optional.of(booking));
 
-        NotFoundException bookingNotFoundException;
+        EntityNotFoundException bookingNotFoundException;
 
-        bookingNotFoundException = Assertions.assertThrows(NotFoundException.class,
+        bookingNotFoundException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> bookingService.approve(1, 1, true));
         assertThat(bookingNotFoundException.getMessage(),
                 is("Пользователь с идентификатором 1 не может подтверждать или отклонять пронирование 1"));
@@ -606,7 +606,8 @@ public class BookingServiceImplTest {
                 .status(BookingStatus.APPROVED)
                 .build();
 
-        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(any(Integer.class), any(BookingStatus.class), any(PageRequest.class)))
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(any(Integer.class), any(BookingStatus.class),
+                any(PageRequest.class)))
                 .thenAnswer(
                         invocation -> {
                             Integer userId = invocation.getArgument(0, Integer.class);
@@ -781,7 +782,8 @@ public class BookingServiceImplTest {
                 .status(BookingStatus.APPROVED)
                 .build();
 
-        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(any(Integer.class), any(BookingStatus.class), any(PageRequest.class)))
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(any(Integer.class), any(BookingStatus.class),
+                any(PageRequest.class)))
                 .thenAnswer(
                         invocation -> {
                             Integer userId = invocation.getArgument(0, Integer.class);

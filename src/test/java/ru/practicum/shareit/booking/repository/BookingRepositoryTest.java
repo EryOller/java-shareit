@@ -168,7 +168,8 @@ public class BookingRepositoryTest {
         booking.setBooker(bookerInMemory);
         bookingRepository.save(booking);
 
-        List<Booking> bookings = bookingRepository.findFutureOwnerBookings(itemInMemory.getId(), ownerInMemory.getId(), now);
+        List<Booking> bookings = bookingRepository.findFutureOwnerBookings(itemInMemory.getId(),
+                ownerInMemory.getId(), now);
         assertThat(bookings.size(), equalTo(1));
         assertThat(bookings.get(0).getItem().getDescription(), equalTo(item.getDescription()));
     }
@@ -191,7 +192,8 @@ public class BookingRepositoryTest {
         booking.setBooker(bookerInMemory);
         bookingRepository.save(booking);
 
-        List<Booking> bookings = bookingRepository.findFutureOwnerBookings(itemInMemory.getId(), ownerInMemory.getId(), now);
+        List<Booking> bookings = bookingRepository.findFutureOwnerBookings(itemInMemory.getId(),
+                ownerInMemory.getId(), now);
         assertThat(bookings.size(), equalTo(0));
     }
 

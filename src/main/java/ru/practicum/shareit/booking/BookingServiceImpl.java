@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.UnavailableBookingException;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.pagination_manager.PaginationManager;
 import ru.practicum.shareit.user.UserService;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
         }
         if (itemService.isValid(bookingDto.getItemId()) &&
                 itemService.findItemById(bookingDto.getItemId()).getOwner().getId() != userId) {
-            if (itemService.isAvailableItem(userId, bookingDto.getItemId())   /*itemService.getItemById(userId, bookingDto.getItemId()).getAvailable()*/) {
+            if (itemService.isAvailableItem(userId, bookingDto.getItemId())) {
                 Booking booking = bookingMapper.toBooking(bookingDto);
                 booking.setBooker(userService.findUserById(userId));
                 booking.setStatus(BookingStatus.WAITING);
@@ -46,7 +46,7 @@ public class BookingServiceImpl implements BookingService {
                         + " не доступно!");
             }
         } else {
-            throw new NotFoundException("Вещь с идентификатором " + bookingDto.getItemId() + " не найдена");
+            throw new EntityNotFoundException("Вещь с идентификатором " + bookingDto.getItemId() + " не найдена");
         }
     }
 
@@ -58,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
                 booking.setStatus(getBookingStatus(isApprove));
                 return bookingMapper.toBookingDtoRs(bookingRepository.save(booking));
             } else {
-                throw new NotFoundException("Пользователь с идентификатором " + userId
+                throw new EntityNotFoundException("Пользователь с идентификатором " + userId
                         + " не может подтверждать или отклонять пронирование " + booking.getId());
             }
         } else {
@@ -70,11 +70,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDtoRs getBookingById(int userId, int bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Booking with id " + bookingId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Booking with id " + bookingId + " not found"));
         if (booking.getBooker().getId() == userId || booking.getItem().getOwner().getId() == userId) {
             return bookingMapper.toBookingDtoRs(bookingRepository.findById(bookingId).get());
         } else {
-            throw new NotFoundException("Пользователь с идентификатором " + userId
+            throw new EntityNotFoundException("Пользователь с идентификатором " + userId
                     + " не может редактировать бронирование " + booking.getId());
         }
     }
@@ -122,7 +122,7 @@ public class BookingServiceImpl implements BookingService {
                     .map(bookingMapper::toBookingDtoRs)
                     .collect(Collectors.toList());
         } else {
-            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
     }
 
@@ -135,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
                     .map(bookingMapper::toBookingDtoRs)
                     .collect(Collectors.toList());
         } else {
-            throw new NotFoundException("Пользователь с идентификатором " + userId + " не найден");
+            throw new EntityNotFoundException("Пользователь с идентификатором " + userId + " не найден");
         }
     }
 

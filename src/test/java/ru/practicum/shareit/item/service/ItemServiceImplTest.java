@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exception.EditForbiddenException;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.PaginationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemServiceImpl;
@@ -27,6 +26,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -118,21 +118,21 @@ public class ItemServiceImplTest {
                 .available(true)
                 .build();
 
-        NotFoundException invalidUserIdException;
+        EntityNotFoundException invalidUserIdException;
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.save(1, itemSaveDto));
         assertThat(invalidUserIdException.getMessage(), is("Владелец вещи с id 1 не найден"));
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.update(1, 1, itemUpdateDto));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.getItemById(1, 1));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.getAllItemWithPagination(1, 0, 10));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
@@ -158,7 +158,7 @@ public class ItemServiceImplTest {
         when(userRepository.findById(3))
                 .thenReturn(Optional.empty());
 
-        invalidUserIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidUserIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.createComment(commentDtoRq, 3, 1));
         assertThat(invalidUserIdException.getMessage(), is("Пользователь с идентификатором 1 не найден"));
     }
@@ -183,7 +183,7 @@ public class ItemServiceImplTest {
                 .available(true)
                 .build();
 
-        NotFoundException invalidItemIdException;
+        EntityNotFoundException invalidItemIdException;
 
         when(userRepository.findById(1))
                 .thenReturn(Optional.of(user));
@@ -191,11 +191,11 @@ public class ItemServiceImplTest {
         when(itemRepository.findById(1))
                 .thenReturn(Optional.empty());
 
-        invalidItemIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidItemIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.update(1, 1, itemDtoRq));
         assertThat(invalidItemIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
-        invalidItemIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidItemIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.getItemById(1, 1));
         assertThat(invalidItemIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
@@ -209,7 +209,7 @@ public class ItemServiceImplTest {
         when(itemRepository.findById(1))
                 .thenReturn(Optional.of(item));
 
-        invalidItemIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidItemIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.update(1, 1, itemDtoRq));
         assertThat(invalidItemIdException.getMessage(), is("Пользователь с id 1 не найден"));
 
@@ -219,7 +219,7 @@ public class ItemServiceImplTest {
         when(itemRepository.findById(1))
                 .thenReturn(Optional.empty());
 
-        invalidItemIdException = Assertions.assertThrows(NotFoundException.class,
+        invalidItemIdException = Assertions.assertThrows(EntityNotFoundException.class,
                 () -> itemService.createComment(commentDto, 1, 3));
         assertThat(invalidItemIdException.getMessage(), is("Пользователь с идентификатором 3 не найден"));
     }
