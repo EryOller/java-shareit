@@ -3,11 +3,11 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.DuplicateException;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service
@@ -18,7 +18,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDtoRs save(UserCreateDtoRq userDto) {
-        return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        try {
+            return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
+        } catch (Exception e) {
+            throw new DuplicateException("Почта уже существует");
+        }
     }
 
     @Override
@@ -44,7 +48,7 @@ public class UserServiceImpl implements UserService {
                 return userMapper.toUserDtoRs(userRepository.save(userUpdate));
             }
         } else {
-            throw new NotFoundException("Not found user by id");
+            throw new EntityNotFoundException("Not found user by id");
         }
     }
 
@@ -58,9 +62,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsById(id);
     }
 
-    public boolean checkDuplicateEmail(User user) {
+    public boolean  checkDuplicateEmail(User user) {
         User userFromRepository = userRepository.getUserByEmail(user.getEmail());
-        if (userFromRepository != null && user.getId() != userFromRepository.getId()) {
+        if (userFromRepository != null && userFromRepository.getId() != user.getId()) {
             return true;
         } else {
             return false;
@@ -69,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     public User findUserById(int userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
     }
 
     private User updateUserByField(User user, User userUpdate) {

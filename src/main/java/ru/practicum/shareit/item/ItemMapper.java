@@ -18,6 +18,7 @@ public interface ItemMapper {
 
     Item toItem(ItemUpdateDtoRq itemDto);
 
+    @Mapping(target = "requestId", source = "item.request.id")
     ItemDtoRs toItemDtoRs(Item item);
 
     List<ItemDtoRs> toListItemDtoRs(List<Item> items);

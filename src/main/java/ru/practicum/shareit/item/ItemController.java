@@ -44,15 +44,19 @@ public class ItemController {
     }
 
     @GetMapping()
-    public List<ItemDtoRs> getAllItems(@RequestHeader("X-Sharer-User-Id") int userId) {
-        log.info("Получен запрос GET /items — на получение списка вещей владельца");
-        return itemService.getAllItemsByUserId(userId);
+    public List<ItemDtoRs> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
+                                              @RequestParam(defaultValue = "0") int from,
+                                              @RequestParam(defaultValue = "10") int size) {
+        log.info("поступил запрос на получение списка вещей постранично");
+        return itemService.getAllItemWithPagination(userId, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDtoRs> getAllItemsByText(@RequestParam String text) {
+    public List<ItemDtoRs> getAllItemsByText(@RequestParam String text,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "10") int size) {
         log.info("Получен запрос GET /items/search — на поиск вещей по тексту");
-        return itemService.searchItemByText(text);
+        return itemService.searchItemByTextWithPagination(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

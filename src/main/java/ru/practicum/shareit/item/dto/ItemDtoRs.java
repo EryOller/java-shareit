@@ -18,4 +18,5 @@ public class ItemDtoRs {
     private BookingItemDtoRs nextBooking;
     @ToString.Exclude
     private List<CommentDtoRs> comments;
+    private int requestId;
 }

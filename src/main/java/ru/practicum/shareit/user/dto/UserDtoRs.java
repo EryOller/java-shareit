@@ -1,9 +1,11 @@
 package ru.practicum.shareit.user.dto;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Setter
+@Getter
 @Builder
 public class UserDtoRs {
     private int id;
