@@ -1,9 +1,9 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
@@ -15,45 +15,40 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
-    private final UserClient userClient;
+    private UserService userService;
 
     @Autowired
-    public UserController(UserClient userClient) {
-        this.userClient = userClient;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping()
-    public ResponseEntity<Object> createUser(@Valid @RequestBody UserCreateDtoRq userDto) {
+    public UserDtoRs createUser(@Valid @RequestBody UserCreateDtoRq userDto) {
         log.info("Получен запрос POST /users — на создание пользователя");
-        return userClient.create(userDto);
-        //return userService.save(userDto);
+        return userService.save(userDto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getUserById(@PathVariable Integer id) {
+    public UserDtoRs getUserById(@PathVariable Integer id) {
         log.info("Получен запрос GET /users/{id} — на получение пользователя по id");
-        return userClient.get(id);
-        //return userService.findById(id);
+        return userService.findById(id);
     }
 
     @GetMapping()
-    public ResponseEntity<Object> getUsers() {
+    public List<UserDtoRs> getUsers() {
         log.info("Получен запрос GET /users — на получение списка пользователей");
-        return userClient.get();
-        //return userService.getUsers();
+        return userService.getUsers();
     }
 
     @DeleteMapping("/{id}")
     public void deleteUserById(@PathVariable Integer id) {
         log.info("Получен запрос DELETE /users/{id} — на удаление пользователя по id");
-        userClient.delete(id);
-        //userService.deleteUserById(id);
+        userService.deleteUserById(id);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Object> updateUserById(@PathVariable Integer id, @Valid @RequestBody UserUpdateDtoRq userDto) {
+    public UserDtoRs updateUserById(@PathVariable Integer id, @Valid @RequestBody UserUpdateDtoRq userDto) {
         log.info("Получен запрос PATCH /users/{id} — на обновление пользователя по id");
-        return userClient.update(id, userDto);
-        //return userService.updateUserById(id, userDto);
+        return userService.updateUserById(id, userDto);
     }
 }
