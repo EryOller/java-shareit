@@ -4,11 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -27,7 +25,6 @@ public class BookingController {
                                                 @Valid @RequestBody BookingSaveDtoRq bookingDto) {
         log.info("Получен запрос POST /bookings — на создание бронирования");
         return bookingClient.create(userId, bookingDto);
-        //return bookingService.save(userId, bookingDto);
     }
 
     @PatchMapping("/{bookingId}")
@@ -36,29 +33,26 @@ public class BookingController {
         log.info("Получен запрос PATCH /bookings/{bookingId}?approved={approved} — подтверждение или отклонение " +
                 "запроса на бронирование");
         return bookingClient.approve(userId, bookingId, approved);
-        //return bookingService.approve(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getBooking(@RequestHeader("X-Sharer-User-Id") int userId, @PathVariable Integer bookingId) {
         log.info("Получен запрос GET /bookings/{bookingId} — получить информацию о бронировании");
         return bookingClient.get(userId, bookingId);
-        //return bookingService.getBookingById(userId, bookingId);
     }
 
     @GetMapping()
-    public /*List<BookingDtoRs>*/ ResponseEntity<Object> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
+    public ResponseEntity<Object> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
                                               @RequestParam(required = false, defaultValue = "ALL") String state1,
                                               @RequestParam(defaultValue = "0") int from,
                                               @RequestParam(defaultValue = "10") int size) {
         log.info("поступил запрос на получение списка бронирований со статусом {} пользователя с id {}", state1, userId);
-        //return bookingService.getBookingListWithPagination(userId, state, from, size);
         BookingState state = BookingState.from(state1).get();
         return bookingClient.get(userId, state, from, size);
     }
 
     @GetMapping("/owner")
-    public /*List<BookingDtoRs>*/ ResponseEntity<Object> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int userId,
+    public ResponseEntity<Object> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int userId,
                                              @RequestParam(defaultValue = "ALL") String state1,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size) {
@@ -66,6 +60,5 @@ public class BookingController {
                 state1, userId);
         BookingState state = BookingState.from(state1).get();
         return bookingClient.getByOwner(userId, state, from, size);
-        //return bookingService.getByOwner(userId, state, from, size);
     }
 }

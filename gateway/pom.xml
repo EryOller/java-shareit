@@ -20,42 +20,4 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
-    <!--    <dependencies>-->
-
-<!--                <dependency>-->
-<!--                    <groupId>ru.practicum</groupId>-->
-<!--                    <artifactId>server</artifactId>-->
-<!--                    <version>0.0.1-SNAPSHOT</version>-->
-<!--&lt;!&ndash;                    <scope>provided</scope>&ndash;&gt;-->
-<!--                </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.apache.httpcomponents</groupId>-->
-<!--            <artifactId>httpclient</artifactId>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.projectlombok</groupId>-->
-<!--            <artifactId>lombok</artifactId>-->
-<!--            <optional>true</optional>-->
-<!--        </dependency>-->
-
-<!--    </dependencies>-->
-
-<!--    <build>-->
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--            </plugin>-->
-<!--        </plugins>-->
-<!--    </build>-->
-<!--    <dependencies>-->
-<!--        <dependency>-->
-<!--            <groupId>ru.practicum</groupId>-->
-<!--            <artifactId>server</artifactId>-->
-<!--            <version>0.0.1-SNAPSHOT</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-<!--    </dependencies>-->
 </project>
