@@ -26,8 +26,14 @@ public class BookingClient extends BaseClient {
         );
     }
 
+//public BookingClient(@Value("${shareit-server.url}") String baseUrl, WebClient.Builder webClientBuilder) {
+//    super(webClientBuilder.baseUrl(baseUrl + API_PREFIX).build());
+//}
+
+
     public ResponseEntity<Object> create(Integer userId, BookingSaveDtoRq bookingDto) {
-        return post("", userId, bookingDto);
+        System.out.println("test-test-test");
+        return post("/", userId, bookingDto);
     }
 
     public ResponseEntity<Object> approve(Integer userId, Integer bookingId, Boolean approved) {

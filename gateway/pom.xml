@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.practicum</groupId>
         <artifactId>shareit</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.1</version>
     </parent>
     <artifactId>gateway</artifactId>
     <name>Archetype - gateway</name>
@@ -17,7 +17,12 @@
         <dependency>
             <groupId>ru.practicum</groupId>
             <artifactId>server</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.13</version>
         </dependency>
     </dependencies>
 </project>
