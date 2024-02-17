@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService {
         try {
             return userMapper.toUserDtoRs(userRepository.save(userMapper.toUser(userDto)));
         } catch (Exception e) {
-            throw new DuplicateException("The mail already exists " + e.getMessage());
+            throw new DuplicateException("The mail already exists ");
         }
     }
 
