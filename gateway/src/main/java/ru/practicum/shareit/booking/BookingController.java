@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
 import javax.validation.Valid;
 
 @Slf4j
+@RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 public class BookingController {
@@ -38,22 +39,20 @@ public class BookingController {
 
     @GetMapping()
     public ResponseEntity<Object> getAllForBooker(@RequestHeader("X-Sharer-User-Id") int userId,
-                                              @RequestParam(required = false, defaultValue = "ALL") String state1,
+                                              @RequestParam(required = false, defaultValue = "ALL") String state,
                                               @RequestParam(defaultValue = "0") int from,
                                               @RequestParam(defaultValue = "10") int size) {
-        log.info("поступил запрос на получение списка бронирований со статусом {} пользователя с id {}", state1, userId);
-        BookingState state = BookingState.from(state1).get();
+        log.info("поступил запрос на получение списка бронирований со статусом {} пользователя с id {}", state, userId);
         return bookingClient.get(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getAllForOwner(@RequestHeader("X-Sharer-User-Id") int userId,
-                                             @RequestParam(defaultValue = "ALL") String state1,
+                                             @RequestParam(defaultValue = "ALL") String state,
                                              @RequestParam(defaultValue = "0") int from,
                                              @RequestParam(defaultValue = "10") int size) {
         log.info("поступил запрос на получение списка бронирований со статусом {} для вещей пользователя с id {}",
-                state1, userId);
-        BookingState state = BookingState.from(state1).get();
+                state, userId);
         return bookingClient.getByOwner(userId, state, from, size);
     }
 }

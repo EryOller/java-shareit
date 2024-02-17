@@ -9,6 +9,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDtoRq;
 
 import javax.validation.Valid;
 
+@RestController
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
 @Slf4j

@@ -11,6 +11,7 @@ import ru.practicum.shareit.item.dto.ItemUpdateDtoRq;
 import javax.validation.Valid;
 
 @Slf4j
+@RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {

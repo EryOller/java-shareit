@@ -26,13 +26,7 @@ public class BookingClient extends BaseClient {
         );
     }
 
-//public BookingClient(@Value("${shareit-server.url}") String baseUrl, WebClient.Builder webClientBuilder) {
-//    super(webClientBuilder.baseUrl(baseUrl + API_PREFIX).build());
-//}
-
-
     public ResponseEntity<Object> create(Integer userId, BookingSaveDtoRq bookingDto) {
-        System.out.println("test-test-test");
         return post("/", userId, bookingDto);
     }
 
@@ -47,18 +41,18 @@ public class BookingClient extends BaseClient {
         return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> get(Integer userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> get(Integer userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.name(),
+                "state", state,
                 "from", from,
                 "size", size
         );
         return get("?state={state}&from={from}&size={size}", userId, parameters);
     }
 
-    public ResponseEntity<Object> getByOwner(Integer userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getByOwner(Integer userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.name(),
+                "state", state,
                 "from", from,
                 "size", size
         );

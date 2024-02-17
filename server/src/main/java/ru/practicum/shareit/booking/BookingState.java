@@ -10,14 +10,6 @@ public enum BookingState {
     WAITING,
     REJECTED;
 
-//    public static State validateState(String value) throws InvalidStatusException  {
-//        try {
-//            return State.valueOf(value);
-//        } catch (RuntimeException exception) {
-//            throw new InvalidStatusException("Unknown state: " + value);
-//        }
-//    }
-
     public static Optional<BookingState> from(String stringState) {
         for (BookingState state : values()) {
             if (state.name().equalsIgnoreCase(stringState)) {

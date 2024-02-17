@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.model;
 
 import lombok.*;
-//import org.mapstruct.Builder;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.comment.model.Comment;
 import ru.practicum.shareit.request.ItemRequest;

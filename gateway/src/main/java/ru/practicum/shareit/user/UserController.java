@@ -10,6 +10,7 @@ import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 import javax.validation.Valid;
 
 @Slf4j
+@RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/users")
 public class UserController {
@@ -17,7 +18,7 @@ public class UserController {
 
     @PostMapping()
     public ResponseEntity<Object> createUser(@Valid @RequestBody UserCreateDtoRq userDto) {
-        log.info("Получен запрос POST /users — на создание пользователя");
+        log.info("Request POST /users — by create user");
         return userClient.create(userDto);
     }
 
