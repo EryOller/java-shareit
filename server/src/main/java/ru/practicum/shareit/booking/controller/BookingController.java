@@ -7,7 +7,6 @@ import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.dto.BookingDtoRs;
 import ru.practicum.shareit.booking.dto.BookingSaveDtoRq;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -24,7 +23,7 @@ public class BookingController {
 
     @PostMapping()
     public BookingDtoRs createBooking(@RequestHeader("X-Sharer-User-Id") int userId,
-                                      @Valid @RequestBody BookingSaveDtoRq bookingDto) {
+                                      @RequestBody BookingSaveDtoRq bookingDto) {
         log.info("Получен запрос POST /bookings — на создание бронирования");
         return bookingService.save(userId, bookingDto);
     }

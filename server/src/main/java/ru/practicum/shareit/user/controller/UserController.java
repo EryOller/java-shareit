@@ -8,7 +8,6 @@ import ru.practicum.shareit.user.dto.UserCreateDtoRq;
 import ru.practicum.shareit.user.dto.UserDtoRs;
 import ru.practicum.shareit.user.dto.UserUpdateDtoRq;
 
-import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -23,7 +22,7 @@ public class UserController {
     }
 
     @PostMapping()
-    public UserDtoRs createUser(@Valid @RequestBody UserCreateDtoRq userDto) {
+    public UserDtoRs createUser(@RequestBody UserCreateDtoRq userDto) {
         log.info("Получен запрос POST /users — на создание пользователя");
         return userService.save(userDto);
     }
@@ -47,7 +46,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public UserDtoRs updateUserById(@PathVariable Integer id, @Valid @RequestBody UserUpdateDtoRq userDto) {
+    public UserDtoRs updateUserById(@PathVariable Integer id, @RequestBody UserUpdateDtoRq userDto) {
         log.info("Получен запрос PATCH /users/{id} — на обновление пользователя по id");
         return userService.updateUserById(id, userDto);
     }
